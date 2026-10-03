@@ -1,0 +1,23 @@
+# Local credentials
+.env
+.env.*
+!.env.example
+
+# Virtual environments
+.venv/
+venv/
+
+# Python caches
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Notebook checkpoints
+.ipynb_checkpoints/
+
+# Generated indexes and local logs
+storage/
+logs/
+
+# Operating system files
+.DS_Store

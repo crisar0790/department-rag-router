@@ -1,0 +1,25 @@
+# Workflow and model integration
+langchain==1.4.3
+langchain-openai==1.6.7
+
+# Persistent vector database
+chromadb==1.5.9
+langchain-chroma==1.1.0
+
+# Document splitting and token counting
+langchain-text-splitters==1.1.3
+tiktoken==0.14.0
+
+# Observability and API client
+langfuse==4.16.0
+openai==3.24.0
+
+# Environment configuration
+python-dotenv==1.2.4
+
+# Demonstration notebook
+jupyter==1.1.1
+ipykernel==7.4.0
+
+# Automated tests
+pytest==9.1.1

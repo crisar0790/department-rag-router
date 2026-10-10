@@ -69,3 +69,14 @@ CHROMA_PERSIST_DIRECTORY = (
     if _chroma_directory.is_absolute()
     else PROJECT_ROOT / _chroma_directory
 ).resolve()
+
+# Document chunking settings.
+CHUNK_SIZE_TOKENS = _read_integer("CHUNK_SIZE_TOKENS", 350, minimum=1)
+CHUNK_OVERLAP_TOKENS = _read_integer(
+    "CHUNK_OVERLAP_TOKENS", 50, minimum=0
+)
+
+if CHUNK_OVERLAP_TOKENS >= CHUNK_SIZE_TOKENS:
+    raise ValueError(
+        "CHUNK_OVERLAP_TOKENS must be smaller than CHUNK_SIZE_TOKENS."
+    )

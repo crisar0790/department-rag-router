@@ -1,12 +1,19 @@
-"""Create reusable chat models through the LangChain integration."""
+"""Create reusable reasoning models through the LangChain integration."""
 
 from langchain_openai import ChatOpenAI
 
-from src.config import OPENAI_API_KEY, OPENAI_CHAT_MODEL
+from src.config import (
+    MAX_OUTPUT_TOKENS,
+    OPENAI_API_KEY,
+    OPENAI_CHAT_MODEL,
+    OPENAI_MAX_RETRIES,
+    OPENAI_REASONING_EFFORT,
+    OPENAI_TIMEOUT,
+)
 
 
 def create_chat_model() -> ChatOpenAI:
-    """Validate local configuration and create the application chat model."""
+    """Validate configuration and create the application reasoning model."""
     if not OPENAI_API_KEY or OPENAI_API_KEY == "your-key-here":
         raise ValueError("Set a valid OPENAI_API_KEY in your .env file.")
 
@@ -16,7 +23,9 @@ def create_chat_model() -> ChatOpenAI:
     return ChatOpenAI(
         model=OPENAI_CHAT_MODEL,
         api_key=OPENAI_API_KEY,
-        temperature=0,
-        timeout=30,
-        max_retries=0,
+        use_responses_api=True,
+        reasoning_effort=OPENAI_REASONING_EFFORT,
+        timeout=OPENAI_TIMEOUT,
+        max_retries=OPENAI_MAX_RETRIES,
+        max_tokens=MAX_OUTPUT_TOKENS,
     )

@@ -15,7 +15,7 @@ from src.config import (
 
 DEPARTMENT_FOLDERS = {
     "hr": "hr_docs",
-    "tecnology": "tech_docs",
+    "technology": "tech_docs",
     "finance": "finance",
 }
 

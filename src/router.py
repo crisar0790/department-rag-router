@@ -47,7 +47,10 @@ Rules:
 """
 
 
-def route_question(question: str) -> RoutingDecision:
+def route_question(
+    question: str,
+    callbacks: list | None = None,
+) -> RoutingDecision:
     """Classify a question and select its responsible department."""
     if not question.strip():
         raise ValueError("Question cannot be empty.")
@@ -61,5 +64,6 @@ def route_question(question: str) -> RoutingDecision:
         [
             SystemMessage(content=ROUTER_PROMPT),
             HumanMessage(content=question),
-        ]
+        ],
+        config={"callbacks": callbacks or []},
     )

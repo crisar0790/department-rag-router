@@ -1,6 +1,7 @@
 """Configure Langfuse tracing for the application."""
 
 from langfuse import Langfuse
+from langfuse.langchain import CallbackHandler
 
 from src.config import (
     LANGFUSE_HOST,
@@ -25,3 +26,8 @@ def create_langfuse_client() -> Langfuse:
         secret_key=LANGFUSE_SECRET_KEY,
         base_url=LANGFUSE_HOST,
     )
+
+
+def create_langfuse_handler() -> CallbackHandler:
+    """Create a LangChain callback handler for Langfuse tracing."""
+    return CallbackHandler()

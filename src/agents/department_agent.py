@@ -56,6 +56,7 @@ def answer_department_question(
     question: str,
     department: str,
     k: int = 3,
+    callbacks: list | None = None,
 ) -> dict:
     """Generate a grounded answer using one department's documents."""
     documents = retrieve_documents(question, department, k=k)
@@ -73,7 +74,11 @@ def answer_department_question(
         ),
     ]
 
-    response = create_chat_model().invoke(messages)
+    
+    response = create_chat_model().invoke(
+        messages,
+        config={"callbacks": callbacks or []},
+    )
 
     return {
         "department": department,

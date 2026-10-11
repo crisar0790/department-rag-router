@@ -16,7 +16,7 @@ from src.config import (
 DEPARTMENT_FOLDERS = {
     "hr": "hr_docs",
     "technology": "tech_docs",
-    "finance": "finance",
+    "finance": "finance_docs",
 }
 
 def _load_document(path: Path, department: str) -> Document:

@@ -38,6 +38,20 @@ def _format_context(documents: list[Document]) -> str:
     return "\n\n---\n\n".join(sections)
 
 
+def _extract_response_text(content: str | list) -> str:
+    """Normalize model response content into plain text."""
+    if isinstance(content, str):
+        return content
+
+    return "\n".join(
+        block["text"]
+        for block in content
+        if isinstance(block, dict)
+        and block.get("type") == "text"
+        and isinstance(block.get("text"), str)
+    )
+
+
 def answer_department_question(
     question: str,
     department: str,
@@ -64,7 +78,7 @@ def answer_department_question(
     return {
         "department": department,
         "question": question,
-        "answer": response.content,
+        "answer": _extract_response_text(response.content),
         "sources": [
             {
                 "document_id": document.metadata["document_id"],

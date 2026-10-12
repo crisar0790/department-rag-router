@@ -57,15 +57,22 @@ def answer_department_question(
     department: str,
     k: int = 3,
     callbacks: list | None = None,
+    specialization: str = "",
 ) -> dict:
     """Generate a grounded answer using one department's documents."""
     documents = retrieve_documents(question, department, k=k)
     context = _format_context(documents)
 
+    system_prompt = SYSTEM_PROMPT.format(department=department)
+
+    if specialization:
+        system_prompt += (
+            "\nDepartment-specific responsibilities:\n"
+            f"{specialization}"
+        )
+
     messages = [
-        SystemMessage(
-            content=SYSTEM_PROMPT.format(department=department)
-        ),
+        SystemMessage(content=system_prompt),
         HumanMessage(
             content=(
                 f"Document context:\n{context}\n\n"

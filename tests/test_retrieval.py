@@ -49,7 +49,7 @@ def mocked_retrieval(sample_documents):
     ):
         store = mock_get_store.return_value
         store._collection.count.return_value = 53
-        store.similarity_search.return_value = sample_documents
+        store.as_retriever.return_value.invoke.return_value = sample_documents
 
         client = mock_get_client.return_value
         observation = MagicMock()
@@ -141,9 +141,15 @@ def test_retrieve_documents_returns_matching_chunks(mocked_retrieval):
     assert result[1].metadata["document_id"] == "HR-002"
 
     mocked_retrieval["get_store"].assert_called_once_with("hr")
-    mocked_retrieval["store"].similarity_search.assert_called_once_with(
-        "How do I request leave?",
-        k=2,
+    mocked_retrieval["store"].as_retriever.assert_called_once_with(
+        search_type="similarity",
+        search_kwargs={"k": 2},
+    )
+
+    mocked_retrieval[
+        "store"
+    ].as_retriever.return_value.invoke.assert_called_once_with(
+        "How do I request leave?"
     )
 
 
@@ -154,7 +160,7 @@ def test_retrieve_documents_rejects_empty_collection(mocked_retrieval):
     with pytest.raises(ValueError, match="No indexed documents found"):
         retrieve_documents("How do I request leave?", "hr")
 
-    mocked_retrieval["store"].similarity_search.assert_not_called()
+    mocked_retrieval["store"].as_retriever.assert_not_called()
 
 
 def test_retrieval_creates_langfuse_observation(mocked_retrieval):

@@ -57,7 +57,12 @@ def retrieve_documents(
                 f"No indexed documents found for department: {department}"
             )
 
-        documents = store.similarity_search(question, k=k)
+        retriever = store.as_retriever(
+            search_type="similarity",
+            search_kwargs={"k": k},
+        )
+
+        documents = retriever.invoke(question)
 
         observation.update(
             output=[

@@ -11,7 +11,9 @@ Built with LangChain, OpenAI, ChromaDB, Langfuse, and Pytest for an AI Engineeri
 - Token-aware document chunking, overlap, and source attribution.
 - CLI with interactive and single-question modes.
 - Langfuse traces for routing, retrieval, and generation.
-- Routing/retrieval evaluation and optional 0–10 LLM judge.
+- Routing, retrieval, and answer quality evaluation with a 1–10 LLM judge.
+- Explicit out-of-scope detection and controlled fallback responses.
+- LLM judge enabled by default during formal evaluations.
 - Jupyter notebook and mocked unit tests.
 
 ## Architecture
@@ -26,14 +28,16 @@ LLM department router
      +---- Technology agent -- technology_documents
      +---- Finance agent ----- finance_documents
      |
+     +---- Out of scope ------ controlled fallback
+     |
      v
-Grounded answer + document sources
+Grounded answer or fallback response
      |
      +---- Langfuse traces
-     +---- Optional LLM judge -> Langfuse score
+     +---- LLM judge (formal evaluation)
 ```
 
-The router chooses one department, then the selected agent retrieves relevant chunks from that department's collection and answers using the retrieved context. The current router has **no dedicated out-of-scope rejection route**.
+The router selects one of three specialized departments or classifies the question as out_of_scope. Department questions are answered using retrieved documents, while out-of-scope questions receive a controlled response without document retrieval.
 
 ## Technology Stack
 
@@ -63,7 +67,10 @@ department-rag-router/
 │   └── report.json
 ├── src/
 │   ├── agents/
-│   │   └── department_agent.py
+│   │   ├── department_agent.py
+│   │   ├── hr_agent.py
+│   │   ├── tech_agent.py
+│   │   └── finance_agent.py
 │   ├── retrieval/
 │   │   ├── chunking.py
 │   │   ├── indexing.py
@@ -172,31 +179,49 @@ python -m src.cli
 
 The system returns a department-specific answer with source references. Valid OpenAI and Langfuse credentials are required.
 
+
 ## Evaluation
 
-`test_queries.json` contains **15 questions**: 12 standard cases, 2 cross-department cases, and 1 out-of-scope case.
+`test_queries.json` contains 15 questions:
 
-Run routing and retrieval evaluation:
+- 12 standard departmental questions.
+- 2 cross-department questions.
+- 1 out-of-scope question.
+
+The evaluation measures department routing, document retrieval,
+and generated answer quality.
+
+### Full Evaluation
+
+Run the complete evaluation, including the LLM judge:
 
 ```bash
-python -m src.evaluation
+python -m src.evaluation --k 3 --output evaluation/report.json
 ```
 
-Include the optional LLM judge:
+The LLM judge is enabled by default.
+
+### Routing and Retrieval Only
+
+To skip LLM quality evaluation:
 
 ```bash
-python -m src.evaluation --judge
+python -m src.evaluation --k 3 --no-judge --output evaluation/routing_only.json
 ```
 
-The report is written to `evaluation/report.json`.
+Use a separate output file to avoid overwriting the complete report.
 
-**Metrics:**
+### Evaluation Metrics
 
-- **Routing accuracy:** correct department predictions divided by cases with an expected department.
-- **Retrieval hit rate:** cases retrieving at least one expected document ID divided by cases with expected document IDs. This is not chunk-level precision.
-- **Average answer quality:** mean LLM judge score (0–10), based on faithfulness, completeness, and relevance to retrieved context.
+- **Routing accuracy:** Proportion of questions routed to their expected department, including `out_of_scope`.
+- **Retrieval hit rate:** Proportion of applicable questions retrieving at least one expected document ID.
+- **Average answer quality:** Mean LLM judge score from 1 to 10, considering faithfulness, completeness, and relevance.
 
-The out-of-scope case is excluded from routing and retrieval denominators and from judge scoring. This **does not mean** the router can reject out-of-scope questions.
+Out-of-scope questions are included in routing accuracy but excluded
+from retrieval and answer quality scoring.
+
+Retrieval hit rate is a document-level metric. It does not measure
+chunk-level precision or recall.
 
 ### Recorded Results
 
@@ -205,14 +230,18 @@ The committed `evaluation/report.json` contains:
 | Metric | Result |
 |---|---:|
 | Total questions | 15 |
-| Routing evaluated | 14 |
-| Routing accuracy | 100% (14/14) |
+| Routing evaluated | 15 |
+| Routing accuracy | 100% (15/15) |
 | Retrieval evaluated | 14 |
 | Retrieval hit rate | 100% (14/14) |
 | Answers judged | 14 |
-| Average answer quality | 9.71/10 |
+| Average answer quality | 9.93/10 |
 
-These results apply to the supplied, small evaluation dataset; they do not establish performance on unseen questions or prove that the selected configuration is optimal.
+These results apply to the supplied evaluation dataset and do not guarantee equivalent performance on unseen questions.
+
+The LLM judge is a complementary quality signal rather than a substitute for independent human evaluation.
+
+The recorded results represent a single evaluation run on a small, predefined dataset. Although all routing and retrieval cases passed, additional unseen, multilingual, and adversarial queries would be needed to assess robustness and generalization.
 
 ## Automated Testing
 
@@ -258,7 +287,7 @@ Open the configured Langfuse project, inspect **Tracing** for a `department-rag-
 5. Tests and examples.
 6. Langfuse observability.
 
-Install dependencies, configure `.env`, build the indexes, open the notebook in VS Code or Jupyter, select the project's `.venv` kernel, and execute cells in order. Run from the repository root. The committed notebook has no saved outputs; run it locally to reproduce the demonstrations.
+Install dependencies, configure `.env`, build the indexes, open the notebook in VS Code or Jupyter, select the project's `.venv` kernel, and execute cells in order. Run from the repository root. The committed notebook includes saved execution outputs demonstrating retrieval, specialized agents, orchestration, out-of-scope handling, and evaluation results. Re-running the notebook requires valid credentials and locally generated vector indexes.
 
 ## Design Decisions and Trade-offs
 
@@ -270,9 +299,9 @@ These explanations distinguish **design rationale** from **measured evidence**. 
 
 **Why:** restricting retrieval to the chosen department reduces cross-domain context mixing and makes responsibilities explicit.
 
-**Trade-off:** wrong routing prevents retrieval from the correct collection; cross-department questions are assigned to one department, and no out-of-scope route exists.
+**Trade-off:** Incorrect routing prevents retrieval from the appropriate collection. Cross-department questions are assigned to a single department, potentially omitting relevant information from other departments. Out-of-scope detection depends on the accuracy of the LLM router and may produce false positives or false negatives.
 
-**Evidence:** routing accuracy was 14/14 on the applicable evaluation cases. This is not a generalization guarantee.
+**Evidence:** routing accuracy was 15/15 on the applicable evaluation cases. This is not a generalization guarantee.
 
 ### LangChain instead of custom orchestration
 
@@ -320,13 +349,13 @@ These explanations distinguish **design rationale** from **measured evidence**. 
 
 ### Chat and evaluator: `gpt-5.5-2026-04-23`
 
-**Decision:** configure this model for generation and optional LLM judging.
+**Decision:** configure this model for generation and LLM judging enabled by default during formal evaluation.
 
 **Why:** a reasoning-capable model is a reasonable starting point for structured routing, grounded answering, and assessment.
 
 **Trade-off:** access, latency, and price depend on API availability. A judge from the same model family is not guaranteed to be independent or unbiased.
 
-**Evidence:** the recorded judge average was 9.71/10 on 14 answers. No controlled model or cost-quality comparison was conducted.
+**Evidence:** the recorded judge average was 9.93/10 on 14 answers. No controlled model or cost-quality comparison was conducted.
 
 ### Model request parameters
 
@@ -341,7 +370,7 @@ These are **initial, configurable settings**, not proven optimal values.
 
 ### Langfuse observability
 
-**Decision:** trace routing, retrieval, generation, and optional judge scores.
+**Decision:** trace routing, retrieval, and answer generation using Langfuse, and record LLM judge scores for formal evaluations by default. Quality scoring remains optional for regular user queries.
 
 **Why:** traces support debugging, auditing retrieval decisions, and investigating answer quality.
 
@@ -349,7 +378,7 @@ These are **initial, configurable settings**, not proven optimal values.
 
 ### Evaluation design and LLM judge
 
-**Decision:** combine deterministic routing/retrieval metrics with a structured 0–10 LLM judge.
+**Decision:** combine deterministic routing/retrieval metrics with a structured 1–10 LLM judge.
 
 **Why:** correct routing and a retrieval hit do not guarantee a complete or faithful answer; the judge adds a complementary quality signal.
 
@@ -384,18 +413,22 @@ Model access depends on the OpenAI account. To reproduce a run, install pinned d
 
 ## Known Limitations
 
-- Three predefined departments; no explicit out-of-scope rejection.
-- Cross-department questions are assigned to one department.
-- Limited fictional knowledge base and small evaluation dataset.
-- Document-level retrieval hit rate does not measure chunk-level precision or recall.
-- LLM judge scores may vary or exhibit bias.
-- No controlled comparison of model, embedding, chunking, or retrieval parameters.
-- Local vector indexes require regeneration after relevant changes.
-- Live API requests incur costs and require credentials.
+- The system supports three predefined departments.
+- Cross-department questions are routed to a single department.
+- Out-of-scope detection depends on LLM classification accuracy.
+- The fictional knowledge base and evaluation dataset are limited.
+- Document-level retrieval hit rate does not measure chunk-level
+  precision or recall.
+- LLM judge scores may vary and may exhibit model-related bias.
+- The evaluator uses the same model family as the application,
+  limiting judge independence.
+- No controlled comparison of models, embeddings, chunk sizes,
+  overlaps, or retrieval depth has been conducted.
+- Local vector indexes must be regenerated after relevant changes.
+- Live API requests incur costs and require valid credentials.
 
 ## Potential Improvements
 
-- Add an out-of-scope route and fallback behavior.
 - Support multi-department retrieval for cross-domain questions.
 - Benchmark models, embeddings, chunk sizes, overlaps, and `k`.
 - Add retrieval precision/recall and human-reviewed evaluation cases.

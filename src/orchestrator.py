@@ -6,8 +6,12 @@ from src.observability import create_langfuse_client, create_langfuse_handler
 from src.router import route_question
 
 
-def process_question(question: str, k: int = 3) -> dict:
-    """Route a question and generate a traced, grounded answer."""
+def process_question(
+    question: str,
+    k: int = 3,
+    include_evaluation_data: bool = False,
+) -> dict:
+    """Route a question and optionally return evaluation data."""
     if not question.strip():
         raise ValueError("Question cannot be empty.")
 
@@ -23,6 +27,8 @@ def process_question(question: str, k: int = 3) -> dict:
             as_type="span",
             input={"question": question, "k": k},
         ) as trace:
+            trace_id = langfuse.get_current_trace_id()
+
             routing = route_question(
                 question,
                 callbacks=[handler],
@@ -47,6 +53,13 @@ def process_question(question: str, k: int = 3) -> dict:
                 output=output,
                 metadata={"department": routing.department},
             )
+
+            if include_evaluation_data:
+                return {
+                    **output,
+                    "context": result["context"],
+                    "trace_id": trace_id,
+                }
 
             return output
     finally:

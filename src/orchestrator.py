@@ -1,11 +1,19 @@
 
 """Coordinate department routing, RAG agents, and Langfuse tracing."""
 
-from src.agents.department_agent import answer_department_question
+from src.agents.hr_agent import answer_hr_question
+from src.agents.tech_agent import answer_tech_question
+from src.agents.finance_agent import answer_finance_question
 from src.evaluator import evaluate_answer, record_evaluation_score
 from src.observability import create_langfuse_client, create_langfuse_handler
 from src.router import route_question
 
+
+DEPARTMENT_AGENTS = {
+    "hr": answer_hr_question,
+    "technology": answer_tech_question,
+    "finance": answer_finance_question,
+}
 
 def _judge_response(
     question: str,
@@ -59,9 +67,10 @@ def process_question(
                 callbacks=[handler],
             )
 
-            result = answer_department_question(
+            agent = DEPARTMENT_AGENTS[routing.department]
+
+            result = agent(
                 question=question,
-                department=routing.department,
                 k=k,
                 callbacks=[handler],
             )

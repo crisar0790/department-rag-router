@@ -14,15 +14,22 @@ from src.evaluator import JudgeResult
 
 @pytest.fixture
 def mocked_workflow():
-    """Mock routing, department agent, and Langfuse dependencies."""
+    """Mock specialized agents, routing, and Langfuse dependencies."""
     with (
         patch("src.orchestrator.create_langfuse_client") as mock_client,
         patch("src.orchestrator.create_langfuse_handler") as mock_handler,
         patch("src.orchestrator.route_question") as mock_router,
-        patch(
-            "src.orchestrator.answer_department_question"
-        ) as mock_agent,
+        patch.dict(
+            "src.orchestrator.DEPARTMENT_AGENTS",
+            {
+                "hr": MagicMock(),
+                "technology": MagicMock(),
+                "finance": MagicMock(),
+            },
+        ),
     ):
+        from src.orchestrator import DEPARTMENT_AGENTS
+
         client = mock_client.return_value
         trace = MagicMock()
         client.start_as_current_observation.return_value = nullcontext(
@@ -34,7 +41,8 @@ def mocked_workflow():
             department="hr",
             reason="Employee policy question.",
         )
-        mock_agent.return_value = {
+
+        agent_result = {
             "answer": "Submit the request through the employee portal.",
             "sources": [
                 {
@@ -45,11 +53,14 @@ def mocked_workflow():
             "context": "Annual leave policy context.",
         }
 
+        for agent in DEPARTMENT_AGENTS.values():
+            agent.return_value = agent_result
+
         yield {
             "client": client,
             "handler": mock_handler.return_value,
             "router": mock_router,
-            "agent": mock_agent,
+            "agents": DEPARTMENT_AGENTS,
             "trace": trace,
         }
 
@@ -87,7 +98,7 @@ def test_rejects_invalid_retrieval_count(k):
     ["hr", "technology", "finance"],
 )
 def test_routes_to_correct_agent(mocked_workflow, department):
-    """Send the question to the department selected by the router."""
+    """Execute only the agent selected by the router."""
     mocked_workflow["router"].return_value = RoutingDecision(
         department=department,
         reason="Department selected.",
@@ -95,12 +106,18 @@ def test_routes_to_correct_agent(mocked_workflow, department):
 
     result = process_question("Example question", k=2)
 
-    mocked_workflow["agent"].assert_called_once_with(
+    selected_agent = mocked_workflow["agents"][department]
+
+    selected_agent.assert_called_once_with(
         question="Example question",
-        department=department,
         k=2,
         callbacks=[mocked_workflow["handler"]],
     )
+
+    for name, agent in mocked_workflow["agents"].items():
+        if name != department:
+            agent.assert_not_called()
+
     assert result["department"] == department
 
 
@@ -181,7 +198,7 @@ def test_flushes_langfuse_after_success(mocked_workflow):
 
 def test_flushes_langfuse_after_agent_failure(mocked_workflow):
     """Flush telemetry even when the department agent fails."""
-    mocked_workflow["agent"].side_effect = RuntimeError(
+    mocked_workflow["agents"]["hr"].side_effect = RuntimeError(
         "Agent execution failed."
     )
 

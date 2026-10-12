@@ -19,7 +19,7 @@ def test_route_question_rejects_empty_input(question):
 
 @pytest.mark.parametrize(
     "department",
-    ["hr", "technology", "finance"],
+    ["hr", "technology", "finance", "out_of_scope"],
 )
 def test_routing_decision_accepts_valid_departments(department):
     """Accept all supported department identifiers."""
@@ -47,6 +47,7 @@ def test_routing_decision_rejects_unknown_department():
         ("How do I request annual leave?", "hr"),
         ("How do I reset my password?", "technology"),
         ("How do I submit an expense?", "finance"),
+        ("Who won the World Cup in 2022?", "out_of_scope"),
     ],
 )
 @patch("src.router.create_chat_model")

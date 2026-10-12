@@ -9,7 +9,12 @@ from pydantic import BaseModel, Field
 from src.models import create_chat_model
 
 
-Department = Literal["hr", "technology", "finance"]
+Department = Literal[
+    "hr",
+    "technology",
+    "finance",
+    "out_of_scope",
+]
 
 
 class RoutingDecision(BaseModel):
@@ -37,12 +42,20 @@ Classify the user's question into exactly one department:
 - finance: Expenses, reimbursements, purchasing, invoices,
   budgets, payments, and financial procedures.
 
+- out_of_scope: Questions unrelated to AR Cloud's HR,
+  Technology, or Finance policies and procedures.
+  Examples include general trivia, entertainment,
+  unrelated personal advice, and external news.
+
 Rules:
 - Select the department primarily responsible for the question.
 - Use the user's intent rather than isolated keywords.
+- Select out_of_scope when the question is unrelated to all three departments.
+- Do not select out_of_scope merely because the question is in Spanish.
+- For ambiguous questions that plausibly belong to a department,
+  select the most likely department.
 - Do not answer the question.
 - Provide a brief reason for your classification.
-- For ambiguous questions, select the most likely department.
 - Return only the structured routing decision.
 """
 

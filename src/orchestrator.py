@@ -15,6 +15,13 @@ DEPARTMENT_AGENTS = {
     "finance": answer_finance_question,
 }
 
+OUT_OF_SCOPE_ANSWER = (
+    "This assistant can only answer questions about "
+    "AR Cloud's Human Resources, Technology, and Finance "
+    "policies and procedures."
+)
+
+
 def _judge_response(
     question: str,
     result: dict,
@@ -66,6 +73,29 @@ def process_question(
                 question,
                 callbacks=[handler],
             )
+
+            if routing.department == "out_of_scope":
+                output = {
+                    "question": question,
+                    "department": routing.department,
+                    "routing_reason": routing.reason,
+                    "answer": OUT_OF_SCOPE_ANSWER,
+                    "sources": [],
+                }
+
+                trace.update(
+                    output=output,
+                    metadata={"department": routing.department},
+                )
+
+                if include_evaluation_data:
+                    return {
+                        **output,
+                        "context": "",
+                        "trace_id": trace_id,
+                    }
+
+                return output
 
             agent = DEPARTMENT_AGENTS[routing.department]
 

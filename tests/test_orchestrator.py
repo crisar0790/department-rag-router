@@ -302,3 +302,71 @@ def test_judge_requires_trace_id(
     mock_evaluate.assert_not_called()
     mock_record.assert_not_called()
     mocked_workflow["client"].flush.assert_called_once()
+
+
+@pytest.mark.parametrize(
+    "question",
+    [
+        "Who won the World Cup in 2022?",
+        "What is the capital of Japan?",
+        "¿Cuál es la mejor película de ciencia ficción?",
+    ],
+)
+def test_out_of_scope_skips_department_agents(
+    mocked_workflow, question
+):
+    """Skip RAG agents for questions outside the supported domains."""
+    mocked_workflow["router"].return_value = RoutingDecision(
+        department="out_of_scope",
+        reason="The question is unrelated to internal procedures.",
+    )
+
+    result = process_question(question)
+
+    assert result["department"] == "out_of_scope"
+    assert result["sources"] == []
+    assert "AR Cloud" in result["answer"]
+
+    for agent in mocked_workflow["agents"].values():
+        agent.assert_not_called()
+
+
+def test_out_of_scope_preserves_evaluation_response_shape(
+    mocked_workflow,
+):
+    """Return empty context and trace ID for evaluation workflows."""
+    mocked_workflow["router"].return_value = RoutingDecision(
+        department="out_of_scope",
+        reason="General knowledge question.",
+    )
+
+    result = process_question(
+        "What is the capital of Japan?",
+        include_evaluation_data=True,
+    )
+
+    assert result["context"] == ""
+    assert result["trace_id"] == "test-trace-123"
+    assert result["sources"] == []
+
+
+@patch("src.orchestrator.evaluate_answer")
+@patch("src.orchestrator.record_evaluation_score")
+def test_out_of_scope_skips_llm_judge(
+    mock_record, mock_evaluate, mocked_workflow
+):
+    """Avoid judging responses without retrieved document context."""
+    mocked_workflow["router"].return_value = RoutingDecision(
+        department="out_of_scope",
+        reason="Unrelated question.",
+    )
+
+    result = process_question(
+        "Who won the World Cup in 2022?",
+        judge=True,
+    )
+
+    assert "answer_quality_score" not in result
+    mock_evaluate.assert_not_called()
+    mock_record.assert_not_called()
+    mocked_workflow["client"].flush.assert_called_once()

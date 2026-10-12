@@ -1,66 +1,55 @@
-
 # Department RAG Router
 
-A Python multi-agent Retrieval-Augmented Generation (RAG) system that routes employee questions to specialized Human Resources, Technology, and Finance agents.
+A Python multi-agent Retrieval-Augmented Generation (RAG) system for **AR Cloud**, a fictional company. Employee questions are routed to specialized Human Resources, Technology, or Finance agents, which generate answers grounded in departmental documents.
 
-The project uses LangChain, OpenAI, ChromaDB, and Langfuse to provide grounded answers, persistent document retrieval, execution tracing, and automated evaluation.
+Built with LangChain, OpenAI, ChromaDB, Langfuse, and Pytest for an AI Engineering course project.
 
 ## Features
 
-- LLM-based intent classification and department routing.
-- Three specialized RAG agents with independent knowledge collections.
-- Persistent ChromaDB vector stores.
-- Document chunking with token-based overlap.
-- Source attribution for generated answers.
-- Interactive and one-shot command-line interfaces.
-- Langfuse tracing for routing, retrieval, and generation.
-- Automated routing and retrieval evaluation.
-- Optional LLM judge with scores from 0 to 10.
-- Langfuse Score API integration.
-- Jupyter notebook demonstrating the complete workflow.
+- LLM-based department routing with structured output.
+- Three specialized agents and independent persistent ChromaDB collections.
+- Token-aware document chunking, overlap, and source attribution.
+- CLI with interactive and single-question modes.
+- Langfuse traces for routing, retrieval, and generation.
+- Routing/retrieval evaluation and optional 0–10 LLM judge.
+- Jupyter notebook and mocked unit tests.
 
 ## Architecture
 
 ```text
-User Question
-      |
-      v
-  LLM Router
-      |
-      +---- HR Agent -------- HR Chroma Collection
-      |
-      +---- Technology Agent - Technology Chroma Collection
-      |
-      +---- Finance Agent ---- Finance Chroma Collection
-      |
-      v
-Grounded Answer + Sources
-      |
-      +---- Langfuse Tracing
-      |
-      +---- Optional LLM Judge
-                    |
-                    v
-              Langfuse Scores
+User question
+     |
+     v
+LLM department router
+     |
+     +---- HR agent ---------- hr_documents
+     +---- Technology agent -- technology_documents
+     +---- Finance agent ----- finance_documents
+     |
+     v
+Grounded answer + document sources
+     |
+     +---- Langfuse traces
+     +---- Optional LLM judge -> Langfuse score
 ```
 
-The router classifies the question into a department. The corresponding agent retrieves relevant document chunks and uses them to generate a grounded response.
-
-Langfuse records execution details, while the evaluation pipeline measures routing accuracy, retrieval performance, and answer quality.
+The router chooses one department, then the selected agent retrieves relevant chunks from that department's collection and answers using the retrieved context. The current router has **no dedicated out-of-scope rejection route**.
 
 ## Technology Stack
 
-- Python 3.12
-- LangChain and LangChain OpenAI
-- OpenAI chat and embedding models
-- ChromaDB and LangChain Chroma
-- Langfuse
-- Tiktoken
-- Jupyter and IPython Kernel
-- Pytest
-- Python Dotenv
+| Technology | Role |
+|---|---|
+| Python 3.12 | Application language |
+| LangChain / LangChain OpenAI | Model integration, structured output, document processing |
+| OpenAI | Chat models, judge, and embeddings |
+| ChromaDB / LangChain Chroma | Persistent vector retrieval |
+| Tiktoken | Token-aware chunking |
+| Langfuse | Traces and evaluation scores |
+| Pytest | Automated unit tests |
+| Jupyter / IPython Kernel | Interactive demonstration |
+| Python Dotenv | Local configuration |
 
-Exact dependency versions are defined in `requirements.txt`.
+Versions are pinned in `requirements.txt`.
 
 ## Project Structure
 
@@ -93,7 +82,7 @@ department-rag-router/
 │   ├── test_orchestrator.py
 │   ├── test_retrieval.py
 │   └── test_evaluation.py
-├── storage/
+├── storage/                 # Generated locally, excluded from Git
 ├── multi_agent_system.ipynb
 ├── test_queries.json
 ├── requirements.txt
@@ -101,341 +90,319 @@ department-rag-router/
 └── README.md
 ```
 
-The `storage/` directory contains the locally generated vector database and is not required to be committed. It can be recreated using the indexing command.
-
 ## Installation
 
-### 1. Clone the repository
+### Clone and set up Python
 
 ```bash
 git clone https://github.com/crisar0790/department-rag-router.git
 cd department-rag-router
-```
-
-### 2. Create a virtual environment
-
-```bash
 python3.12 -m venv .venv
 source .venv/bin/activate
-```
-
-On Windows:
-
-```powershell
-.venv\Scripts\activate
-```
-
-### 3. Install dependencies
-
-```bash
 python -m pip install -r requirements.txt
 ```
 
-### 4. Configure environment variables
+On Windows PowerShell, create the environment with `py -3.12 -m venv .venv` and activate it with `.venv\Scripts\Activate.ps1`.
 
-Copy the environment template:
+### Configure credentials
 
 ```bash
 cp .env.example .env
 ```
 
-On Windows, create a copy of `.env.example` named `.env`.
+On Windows, use `Copy-Item .env.example .env` or copy the file manually.
 
-Configure the required credentials:
+Set these values in `.env`:
 
 ```dotenv
 OPENAI_API_KEY=your-openai-api-key
-
 LANGFUSE_PUBLIC_KEY=your-langfuse-public-key
 LANGFUSE_SECRET_KEY=your-langfuse-secret-key
 LANGFUSE_HOST=https://cloud.langfuse.com
 ```
 
-The environment template also defines:
+Other settings are documented in `.env.example`. Never commit `.env` or real credentials.
 
-- `OPENAI_CHAT_MODEL`
-- `OPENAI_EMBEDDING_MODEL`
-- `OPENAI_EVALUATOR_MODEL`
-- `OPENAI_REASONING_EFFORT`
-- `OPENAI_TIMEOUT`
-- `OPENAI_MAX_RETRIES`
-- `MAX_OUTPUT_TOKENS`
-- `CHROMA_PERSIST_DIRECTORY`
-- `CHUNK_SIZE_TOKENS`
-- `CHUNK_OVERLAP_TOKENS`
+## Document Collections and Indexing
 
-Never commit the `.env` file or actual API credentials.
-
-## Document Collections
-
-The project contains three departmental knowledge bases:
-
-| Department | Collection | Indexed chunks |
+| Department | Chroma collection | Recorded chunks |
 |---|---|---:|
 | Human Resources | `hr_documents` | 53 |
 | Technology | `technology_documents` | 51 |
 | Finance | `finance_documents` | 56 |
 | **Total** | | **160** |
 
-Documents are split into overlapping chunks using token-aware splitting.
+The counts above come from the recorded indexing run. They may change if documents or chunking settings change.
 
-The configured initial chunking parameters are:
+Initial settings:
 
 ```dotenv
+CHROMA_PERSIST_DIRECTORY=storage/chroma
 CHUNK_SIZE_TOKENS=350
 CHUNK_OVERLAP_TOKENS=50
 ```
 
-These values control chunk size and overlap and can be adjusted through the environment configuration.
-
-### Build the vector stores
-
-Run:
+Build all collections:
 
 ```bash
 python -m src.retrieval.indexing --department all
 ```
 
-This creates the persistent ChromaDB collections using OpenAI embeddings.
+Or rebuild one department:
 
-The indexing process requires an OpenAI API key and incurs embedding API costs.
+```bash
+python -m src.retrieval.indexing --department hr
+```
 
-Reindex after modifying source documents or changing chunking parameters.
+Rebuild indexes after modifying documents, embeddings, or chunking parameters. Indexing uses the OpenAI embeddings API and incurs costs. The generated `storage/` directory is intentionally not committed.
 
 ## Running the Application
 
-### One-shot mode
+Single question:
 
 ```bash
 python -m src.cli --question "How do I request annual leave?"
 ```
 
-### Interactive mode
+Interactive mode:
 
 ```bash
 python -m src.cli
 ```
 
-The system routes each question to the relevant department and returns an answer with supporting document sources.
+The system returns a department-specific answer with source references. Valid OpenAI and Langfuse credentials are required.
 
 ## Evaluation
 
-The evaluation dataset is stored in `test_queries.json`.
+`test_queries.json` contains **15 questions**: 12 standard cases, 2 cross-department cases, and 1 out-of-scope case.
 
-It contains 15 test questions covering:
-
-- Human Resources
-- Technology
-- Finance
-- Edge cases, including an out-of-scope question
-
-### Evaluate routing and retrieval
+Run routing and retrieval evaluation:
 
 ```bash
 python -m src.evaluation
 ```
 
-### Evaluate with the LLM judge
+Include the optional LLM judge:
 
 ```bash
 python -m src.evaluation --judge
 ```
 
-The evaluation report is saved to:
+The report is written to `evaluation/report.json`.
 
-```text
-evaluation/report.json
-```
+**Metrics:**
 
-The evaluation calculates:
+- **Routing accuracy:** correct department predictions divided by cases with an expected department.
+- **Retrieval hit rate:** cases retrieving at least one expected document ID divided by cases with expected document IDs. This is not chunk-level precision.
+- **Average answer quality:** mean LLM judge score (0–10), based on faithfulness, completeness, and relevance to retrieved context.
 
-**Routing accuracy:** the proportion of applicable questions routed to the expected department.
+The out-of-scope case is excluded from routing and retrieval denominators and from judge scoring. This **does not mean** the router can reject out-of-scope questions.
 
-**Retrieval hit rate:** the proportion of applicable questions for which at least one expected document ID was retrieved.
+### Recorded Results
 
-**Average answer quality:** the mean LLM judge score, from 0 to 10, across evaluated answers.
-
-The LLM judge evaluates faithfulness, completeness, and relevance using the retrieved context.
-
-Out-of-scope cases without expected documents or departments are excluded from the corresponding metrics.
-
-### Recorded Evaluation Results
-
-The following results were obtained from the completed 15-query evaluation:
+The committed `evaluation/report.json` contains:
 
 | Metric | Result |
 |---|---:|
-| Total queries | 15 |
+| Total questions | 15 |
+| Routing evaluated | 14 |
 | Routing accuracy | 100% (14/14) |
+| Retrieval evaluated | 14 |
 | Retrieval hit rate | 100% (14/14) |
-| Evaluated answer quality cases | 14 |
+| Answers judged | 14 |
 | Average answer quality | 9.71/10 |
 
-These results describe the supplied evaluation dataset. They do not guarantee equivalent performance on unseen questions.
-
-The retrieval hit rate measures whether at least one expected document was retrieved; it is not a measure of precision for every retrieved chunk.
-
-## Langfuse Observability
-
-Langfuse records the execution of the RAG workflow.
-
-The main trace is named:
-
-```text
-department-rag-query
-```
-
-The trace includes the routing workflow, retrieval operations, model generations, and associated execution information.
-
-Depending on the available provider data, Langfuse can display latency, token usage, and estimated model costs.
-
-The optional evaluator records an `answer_quality` score using the Langfuse Score API.
-
-To inspect execution details:
-
-1. Open the configured Langfuse project.
-2. Navigate to **Tracing**.
-3. Open a `department-rag-query` trace.
-4. Inspect its nested observations.
-5. Navigate to **Scores** to inspect evaluation results.
-
-Langfuse credentials must be configured before running the traced workflow.
-
-## Jupyter Notebook
-
-The demonstration notebook is:
-
-```text
-multi_agent_system.ipynb
-```
-
-It contains six sections:
-
-1. Setup and Imports
-2. Document Collections and Vector Stores
-3. Specialized Department Agents
-4. Router and Orchestrator
-5. Tests and Examples
-6. Langfuse Observability
-
-### Execution instructions
-
-1. Install dependencies.
-2. Configure `.env`.
-3. Build the vector stores.
-4. Open the notebook in VS Code or Jupyter.
-5. Select the project's `.venv` Python kernel.
-6. Execute the cells in order using **Run All**.
-
-The notebook demonstrates document retrieval, agent execution, department routing, grounded answers, evaluation results, and observability.
-
-Run the notebook from the repository root so that project imports and relative paths resolve correctly.
+These results apply to the supplied, small evaluation dataset; they do not establish performance on unseen questions or prove that the selected configuration is optimal.
 
 ## Automated Testing
 
-The project includes automated unit tests implemented with Pytest.
+The project contains five Pytest modules:
 
-The test suite covers five main components:
-
-| Test File | Responsibility |
+| Test file | Main responsibility |
 |---|---|
-| `tests/test_router.py` | Department classification, structured routing decisions, and callbacks. |
-| `tests/test_department_agent.py` | Context formatting, answer generation, source attribution, and callbacks. |
-| `tests/test_orchestrator.py` | Agent coordination, routing, Langfuse tracing, and error handling. |
-| `tests/test_retrieval.py` | Department vector stores, document retrieval, input validation, and tracing. |
-| `tests/test_evaluation.py` | Evaluation metrics, retrieval hits, LLM judge results, and Langfuse scores. |
+| `tests/test_router.py` | Input validation, routing decisions, callbacks |
+| `tests/test_department_agent.py` | Context formatting, answers, sources |
+| `tests/test_orchestrator.py` | Agent coordination, traces, error handling |
+| `tests/test_retrieval.py` | Vector stores, retrieval, tracing |
+| `tests/test_evaluation.py` | Metrics, judge, Langfuse scores |
 
-### Run All Tests
-
-From the project root, with the virtual environment activated, run:
+Run all tests:
 
 ```bash
 python -m pytest -v
 ```
 
-### Run Tests for a Specific Component
-
-For example, to test the department router:
+Run an individual module:
 
 ```bash
 python -m pytest tests/test_router.py -v
-```
-
-To test the evaluation module:
-
-```bash
 python -m pytest tests/test_evaluation.py -v
 ```
 
-### Testing Strategy
+The tests mock external OpenAI, ChromaDB, and Langfuse interactions where appropriate, making unit tests fast and avoiding live API calls. They verify code behavior, while the evaluation pipeline tests the actual RAG workflow. Do not interpret passing mocked tests as proof of live model quality.
 
-The unit tests use mocks to isolate external dependencies, including OpenAI models, ChromaDB, and Langfuse.
+## Langfuse Observability
 
-This approach provides:
+The root observation is named `department-rag-query`. The workflow records routing, retrieval, generation, and relevant metadata. When the judge is enabled, an `answer_quality` numeric score is submitted through the Langfuse Score API.
 
-- Fast and reproducible test execution.
-- No external API requests during mocked unit tests.
-- No additional OpenAI API costs.
-- Validation of expected behavior and error handling.
-- Independent verification of individual system components.
+Open the configured Langfuse project, inspect **Tracing** for a `department-rag-query` trace, and review **Scores** for evaluation results. Provider telemetry may also expose latency, token usage, and estimated cost.
 
-The automated unit tests are separate from the functional evaluation pipeline.
+## Jupyter Notebook
 
-Unit tests verify the implementation's behavior, while the evaluation pipeline measures routing accuracy, retrieval performance, and answer quality using the supplied evaluation dataset.
+`multi_agent_system.ipynb` demonstrates:
 
-To run the functional evaluation:
+1. Setup and imports.
+2. Document collections and vector stores.
+3. Specialized department agents.
+4. Router and orchestrator.
+5. Tests and examples.
+6. Langfuse observability.
 
-```bash
-python -m src.evaluation
-```
+Install dependencies, configure `.env`, build the indexes, open the notebook in VS Code or Jupyter, select the project's `.venv` kernel, and execute cells in order. Run from the repository root. The committed notebook has no saved outputs; run it locally to reproduce the demonstrations.
 
-To include the optional LLM judge:
+## Design Decisions and Trade-offs
 
-```bash
-python -m src.evaluation --judge
-```
+These explanations distinguish **design rationale** from **measured evidence**. Unless stated otherwise, the configuration was not experimentally optimized through controlled comparisons.
 
-Unlike mocked unit tests, functional evaluation requires configured external services and may incur API costs.
+### Department router and specialized agents
+
+**Decision:** use an LLM router and three department-specific RAG agents rather than searching a single shared knowledge base.
+
+**Why:** restricting retrieval to the chosen department reduces cross-domain context mixing and makes responsibilities explicit.
+
+**Trade-off:** wrong routing prevents retrieval from the correct collection; cross-department questions are assigned to one department, and no out-of-scope route exists.
+
+**Evidence:** routing accuracy was 14/14 on the applicable evaluation cases. This is not a generalization guarantee.
+
+### LangChain instead of custom orchestration
+
+**Decision:** use LangChain for structured model outputs, model integration, document objects, and splitting.
+
+**Why:** shared abstractions reduce boilerplate and keep components modular.
+
+**Trade-off:** the project depends on library interfaces and version compatibility; dependencies are pinned. The workflow is sequential Python orchestration and does not require a LangGraph state machine.
+
+### Persistent ChromaDB and independent collections
+
+**Decision:** use locally persistent ChromaDB with separate collections for HR, Technology, and Finance.
+
+**Why:** departmental isolation simplifies retrieval boundaries, and persistence avoids re-embedding documents on each execution.
+
+**Trade-off:** local indexes require rebuilding on another machine; this setup is not designed for distributed production deployment or centralized access control.
+
+### Chunk size: 350 tokens, overlap: 50 tokens
+
+**Decision:** use token-aware recursive splitting with 350-token chunks and 50-token overlap.
+
+**Why:** relatively compact chunks keep retrieval focused, while overlap helps preserve information crossing chunk boundaries.
+
+**Trade-off:** smaller chunks can lose context, larger chunks can add irrelevant text, and overlap increases indexing/storage work.
+
+**Evidence:** this configuration produced 160 indexed chunks across three departments. No alternative chunk-size or overlap settings were benchmarked.
+
+### Embeddings: `text-embedding-3-small`
+
+**Decision:** use `text-embedding-3-small` for document and query embeddings.
+
+**Why:** it is a practical, relatively economical starting point for a small educational corpus.
+
+**Trade-off:** retrieval quality may differ with other models, especially on ambiguous terminology. No comparative embedding benchmark was run. Switching models requires reindexing.
+
+### Retrieval depth: `k=3`
+
+**Decision:** retrieve three similar chunks by default.
+
+**Why:** this limits the context sent to the answer model while allowing multiple supporting passages.
+
+**Trade-off:** smaller `k` may miss evidence; larger `k` may introduce noise, latency, and cost.
+
+**Evidence:** the recorded retrieval hit rate was 14/14 on applicable cases. There was no controlled comparison against other `k` values.
+
+### Chat and evaluator: `gpt-5.5-2026-04-23`
+
+**Decision:** configure this model for generation and optional LLM judging.
+
+**Why:** a reasoning-capable model is a reasonable starting point for structured routing, grounded answering, and assessment.
+
+**Trade-off:** access, latency, and price depend on API availability. A judge from the same model family is not guaranteed to be independent or unbiased.
+
+**Evidence:** the recorded judge average was 9.71/10 on 14 answers. No controlled model or cost-quality comparison was conducted.
+
+### Model request parameters
+
+| Setting | Initial value | Rationale / limitation |
+|---|---|---|
+| `OPENAI_REASONING_EFFORT` | `low` | Limits initial reasoning effort; not compared experimentally with other levels. |
+| `OPENAI_TIMEOUT` | `60` seconds | Allows time for reasoning-enabled calls; not tuned from measured latency distributions. |
+| `OPENAI_MAX_RETRIES` | `0` | Exposes failures without hidden repeated requests; transient errors are not retried automatically. |
+| `MAX_OUTPUT_TOKENS` | `2048` | Bounds generation output; not systematically tested against shorter limits. |
+
+These are **initial, configurable settings**, not proven optimal values.
+
+### Langfuse observability
+
+**Decision:** trace routing, retrieval, generation, and optional judge scores.
+
+**Why:** traces support debugging, auditing retrieval decisions, and investigating answer quality.
+
+**Trade-off:** tracing requires an external service and care with sensitive information in production.
+
+### Evaluation design and LLM judge
+
+**Decision:** combine deterministic routing/retrieval metrics with a structured 0–10 LLM judge.
+
+**Why:** correct routing and a retrieval hit do not guarantee a complete or faithful answer; the judge adds a complementary quality signal.
+
+**Trade-off:** judge scores can vary and may be biased. The 15-question dataset is small; human review and more varied cases would strengthen the evidence.
+
+### Mocked unit tests versus functional evaluation
+
+**Decision:** test internal control flow using mocks and assess real end-to-end behavior separately.
+
+**Why:** mocked tests are reproducible and inexpensive, while live evaluation captures retrieval and generation quality.
+
+**Trade-off:** passing unit tests cannot establish the reliability of external services or real model responses.
 
 ## Configuration and Reproducibility
 
-The project uses environment variables to configure model selection, request limits, document chunking, and vector database storage.
+Configuration is centralized in `src/config.py` and `.env.example`. Documented defaults:
 
-The default environment template specifies:
+```dotenv
+OPENAI_CHAT_MODEL=gpt-5.5-2026-04-23
+OPENAI_EMBEDDING_MODEL=text-embedding-3-small
+OPENAI_EVALUATOR_MODEL=gpt-5.5-2026-04-23
+OPENAI_REASONING_EFFORT=low
+OPENAI_TIMEOUT=60
+OPENAI_MAX_RETRIES=0
+MAX_OUTPUT_TOKENS=2048
+CHUNK_SIZE_TOKENS=350
+CHUNK_OVERLAP_TOKENS=50
+CHROMA_PERSIST_DIRECTORY=storage/chroma
+```
 
-- Chat model: `gpt-5.5-2026-04-23`
-- Evaluator model: `gpt-5.5-2026-04-23`
-- Embedding model: `text-embedding-3-small`
-- Reasoning effort: `low`
-- Request timeout: 60 seconds
-- Maximum retries: 0
-- Maximum output tokens: 2048
-
-These are configuration choices rather than experimentally proven optimal values.
-
-Model access and availability depend on the OpenAI account and API configuration.
+Model access depends on the OpenAI account. To reproduce a run, install pinned dependencies, configure credentials, rebuild the vector indexes, and rerun the evaluation. Outputs may vary across model executions.
 
 ## Known Limitations
 
-- Routing supports three predefined departments.
-- The document collections contain a limited fictional organizational knowledge base.
-- Out-of-domain questions are not handled by a dedicated rejection route.
-- Retrieval evaluation uses document-level hits rather than chunk-level precision.
-- The LLM judge is an automated evaluator and may exhibit scoring variability.
-- Changes to embedding models or chunking parameters may require rebuilding the vector stores.
-- API usage for indexing, answering, and evaluation incurs costs.
-- The application requires valid OpenAI and Langfuse credentials.
+- Three predefined departments; no explicit out-of-scope rejection.
+- Cross-department questions are assigned to one department.
+- Limited fictional knowledge base and small evaluation dataset.
+- Document-level retrieval hit rate does not measure chunk-level precision or recall.
+- LLM judge scores may vary or exhibit bias.
+- No controlled comparison of model, embedding, chunking, or retrieval parameters.
+- Local vector indexes require regeneration after relevant changes.
+- Live API requests incur costs and require credentials.
 
 ## Potential Improvements
 
-- Introduce a dedicated out-of-scope routing decision.
-- Add retrieval precision and recall metrics.
-- Evaluate alternative models and chunking configurations.
-- Expand the evaluation dataset.
-- Introduce confidence thresholds and fallback behavior.
-- Add automated regression tests and CI workflows.
-- Compare answer quality across different retrieval settings.
+- Add an out-of-scope route and fallback behavior.
+- Support multi-department retrieval for cross-domain questions.
+- Benchmark models, embeddings, chunk sizes, overlaps, and `k`.
+- Add retrieval precision/recall and human-reviewed evaluation cases.
+- Track latency, tokens, and API cost alongside quality.
+- Expand regression coverage and introduce CI.
+- Add production privacy safeguards and access controls.
 
 ## License
 
-This project was developed for educational purposes as part of an AI Engineering course.
+Developed for educational purposes as part of an AI Engineering course. No separate open-source license has been specified.

@@ -1,6 +1,7 @@
 
 """Retrieve relevant documents from department vector indexes."""
 
+from langfuse import get_client
 from langchain_chroma import Chroma
 from langchain_core.documents import Document
 
@@ -31,18 +32,46 @@ def retrieve_documents(
     department: str,
     k: int = 3,
 ) -> list[Document]:
-    """Retrieve the most relevant chunks from one department."""
+    """Retrieve relevant chunks and trace the vector search."""
     if not question.strip():
         raise ValueError("Question cannot be empty.")
 
     if k < 1:
         raise ValueError("Retrieval count must be at least 1.")
 
-    store = get_department_store(department)
+    langfuse = get_client()
 
-    if store._collection.count() == 0:
-        raise ValueError(
-            f"No indexed documents found for department: {department}"
+    with langfuse.start_as_current_observation(
+        name="department-retrieval",
+        as_type="retriever",
+        input={
+            "question": question,
+            "department": department,
+            "k": k,
+        },
+    ) as observation:
+        store = get_department_store(department)
+
+        if store._collection.count() == 0:
+            raise ValueError(
+                f"No indexed documents found for department: {department}"
+            )
+
+        documents = store.similarity_search(question, k=k)
+
+        observation.update(
+            output=[
+                {
+                    "document_id": document.metadata.get("document_id"),
+                    "source": document.metadata.get("source"),
+                }
+                for document in documents
+            ],
+            metadata={
+                "department": department,
+                "retrieved_count": len(documents),
+                "collection": f"{department}_documents",
+            },
         )
 
-    return store.similarity_search(question, k=k)
+        return documents

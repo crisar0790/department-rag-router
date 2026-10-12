@@ -87,6 +87,12 @@ department-rag-router/
 │   ├── observability.py
 │   ├── orchestrator.py
 │   └── router.py
+├── tests/
+│   ├── test_router.py
+│   ├── test_department_agent.py
+│   ├── test_orchestrator.py
+│   ├── test_retrieval.py
+│   └── test_evaluation.py
 ├── storage/
 ├── multi_agent_system.ipynb
 ├── test_queries.json
@@ -325,17 +331,71 @@ The notebook demonstrates document retrieval, agent execution, department routin
 
 Run the notebook from the repository root so that project imports and relative paths resolve correctly.
 
-## Testing
+## Automated Testing
 
-Pytest is included as a development dependency.
+The project includes automated unit tests implemented with Pytest.
 
-Run any available automated tests with:
+The test suite covers five main components:
+
+| Test File | Responsibility |
+|---|---|
+| `tests/test_router.py` | Department classification, structured routing decisions, and callbacks. |
+| `tests/test_department_agent.py` | Context formatting, answer generation, source attribution, and callbacks. |
+| `tests/test_orchestrator.py` | Agent coordination, routing, Langfuse tracing, and error handling. |
+| `tests/test_retrieval.py` | Department vector stores, document retrieval, input validation, and tracing. |
+| `tests/test_evaluation.py` | Evaluation metrics, retrieval hits, LLM judge results, and Langfuse scores. |
+
+### Run All Tests
+
+From the project root, with the virtual environment activated, run:
 
 ```bash
-python -m pytest
+python -m pytest -v
 ```
 
-The evaluation pipeline provides an additional functional validation of routing, retrieval, and answer generation.
+### Run Tests for a Specific Component
+
+For example, to test the department router:
+
+```bash
+python -m pytest tests/test_router.py -v
+```
+
+To test the evaluation module:
+
+```bash
+python -m pytest tests/test_evaluation.py -v
+```
+
+### Testing Strategy
+
+The unit tests use mocks to isolate external dependencies, including OpenAI models, ChromaDB, and Langfuse.
+
+This approach provides:
+
+- Fast and reproducible test execution.
+- No external API requests during mocked unit tests.
+- No additional OpenAI API costs.
+- Validation of expected behavior and error handling.
+- Independent verification of individual system components.
+
+The automated unit tests are separate from the functional evaluation pipeline.
+
+Unit tests verify the implementation's behavior, while the evaluation pipeline measures routing accuracy, retrieval performance, and answer quality using the supplied evaluation dataset.
+
+To run the functional evaluation:
+
+```bash
+python -m src.evaluation
+```
+
+To include the optional LLM judge:
+
+```bash
+python -m src.evaluation --judge
+```
+
+Unlike mocked unit tests, functional evaluation requires configured external services and may incur API costs.
 
 ## Configuration and Reproducibility
 

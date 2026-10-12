@@ -22,8 +22,12 @@ def _display_result(result: dict) -> None:
         for document_id, source in sorted(sources):
             print(f"- {document_id}: {source}")
 
+    if "answer_quality_score" in result:
+        print(f"\nAnswer quality: {result['answer_quality_score']}/10")
+        print(f"Judge justification: {result['judge_justification']}")
 
-def _run_interactive(k: int) -> None:
+
+def _run_interactive(k: int, judge: bool = False) -> None:
     """Process questions until the user exits the session."""
     print("AR Cloud Department RAG")
     print("Type 'exit' or 'quit' to stop.\n")
@@ -43,7 +47,11 @@ def _run_interactive(k: int) -> None:
             continue
 
         try:
-            result = process_question(question, k=k)
+            result = process_question(
+                question,
+                k=k,
+                judge=judge,
+            )
             _display_result(result)
         except Exception as exc:
             print(f"Error: {exc}")
@@ -67,6 +75,11 @@ def main() -> None:
         default=3,
         help="Number of document chunks to retrieve (default: 3).",
     )
+    parser.add_argument(
+        "--judge",
+        action="store_true",
+        help="Evaluate the generated answer using the LLM judge.",
+    )
 
     args = parser.parse_args()
 
@@ -74,11 +87,15 @@ def main() -> None:
         parser.error("--k must be at least 1.")
 
     if args.question is None:
-        _run_interactive(args.k)
+        _run_interactive(args.k, judge=args.judge)
         return
 
     try:
-        result = process_question(args.question, k=args.k)
+        result = process_question(
+            args.question,
+            k=args.k,
+            judge=args.judge,
+        )
         _display_result(result)
     except Exception as exc:
         parser.exit(1, f"Error: {exc}\n")

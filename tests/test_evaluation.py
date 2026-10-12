@@ -50,7 +50,14 @@ def test_load_test_queries_reads_valid_dataset(tmp_path):
     """Load evaluation questions from a JSON file."""
     path = tmp_path / "queries.json"
     path.write_text(
-        json.dumps({"queries": [{"id": "HR-01"}]}),
+        json.dumps({
+            "queries": [
+                {
+                    "id": "HR-01",
+                    "expected_department": "hr",
+                }
+            ]
+        }),
         encoding="utf-8",
     )
 
@@ -140,24 +147,56 @@ def test_evaluate_query_detects_retrieval_miss(
     assert result["retrieval_hit"] is False
 
 
+
 @patch("src.evaluation.process_question")
-def test_out_of_scope_query_is_not_scored(
+def test_out_of_scope_query_counts_as_correct_routing(
     mock_process, sample_result
 ):
-    """Exclude out-of-scope questions from routing and retrieval metrics."""
-    mock_process.return_value = sample_result
+    """Count correct rejection as routing success without retrieval."""
+    mock_process.return_value = {
+        **sample_result,
+        "department": "out_of_scope",
+        "answer": "This question is outside the supported domains.",
+        "sources": [],
+    }
 
     query = {
         "id": "EDGE-03",
         "question": "What will the weather be tomorrow?",
-        "expected_department": None,
+        "expected_department": "out_of_scope",
         "expected_document_ids": [],
         "category": "out_of_scope",
     }
 
     result = evaluate_query(query)
 
-    assert result["routing_correct"] is None
+    assert result["routing_correct"] is True
+    assert result["retrieval_hit"] is None
+    assert result["predicted_department"] == "out_of_scope"
+    assert result["retrieved_document_ids"] == []
+
+
+@patch("src.evaluation.process_question")
+def test_out_of_scope_query_detects_incorrect_routing(
+    mock_process, sample_result
+):
+    """Detect out-of-scope questions routed to a department."""
+    mock_process.return_value = {
+        **sample_result,
+        "department": "hr",
+    }
+
+    query = {
+        "id": "EDGE-03",
+        "question": "What will the weather be tomorrow?",
+        "expected_department": "out_of_scope",
+        "expected_document_ids": [],
+        "category": "out_of_scope",
+    }
+
+    result = evaluate_query(query)
+
+    assert result["routing_correct"] is False
     assert result["retrieval_hit"] is None
 
 

@@ -104,7 +104,7 @@
     {
       "id": "EDGE-03",
       "question": "What will the weather be like tomorrow in Buenos Aires?",
-      "expected_department": null,
+      "expected_department": "out_of_scope",
       "expected_document_ids": [],
       "category": "out_of_scope"
     }

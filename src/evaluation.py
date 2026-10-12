@@ -21,6 +21,19 @@ def load_test_queries(path: Path) -> list[dict]:
     if not isinstance(queries, list) or not queries:
         raise ValueError("Evaluation queries must be a non-empty list.")
 
+    valid_departments = {
+        "hr",
+        "technology",
+        "finance",
+        "out_of_scope",
+    }
+
+    for query in queries:
+        if query.get("expected_department") not in valid_departments:
+            raise ValueError(
+                f"Invalid expected department for query {query.get('id')}"
+            )
+
     return queries
 
 
@@ -61,8 +74,7 @@ def evaluate_query(query: dict, k: int = 3, judge: bool = False) -> dict:
         "category": query["category"],
         "expected_department": expected,
         "predicted_department": result["department"],
-        "routing_correct": result["department"] == expected
-        if expected is not None else None,
+        "routing_correct": result["department"] == expected,
         "expected_document_ids": sorted(expected_ids),
         "retrieved_document_ids": sorted(retrieved_ids),
         "retrieval_hit": bool(expected_ids & retrieved_ids)

@@ -9,6 +9,8 @@ import pytest
 from src.orchestrator import process_question
 from src.router import RoutingDecision
 
+from src.evaluator import JudgeResult
+
 
 @pytest.fixture
 def mocked_workflow():
@@ -188,4 +190,98 @@ def test_flushes_langfuse_after_agent_failure(mocked_workflow):
     ):
         process_question("How do I request leave?")
 
+    mocked_workflow["client"].flush.assert_called_once()
+
+
+@patch("src.orchestrator.record_evaluation_score")
+@patch("src.orchestrator.evaluate_answer")
+def test_optional_judge_evaluates_response(
+    mock_evaluate,
+    mock_record,
+    mocked_workflow,
+):
+    """Evaluate and record answer quality when the judge is enabled."""
+    judgment = JudgeResult(
+        score=9,
+        justification="The answer is grounded in the provided context.",
+    )
+    mock_evaluate.return_value = judgment
+
+    result = process_question(
+        "How do I request leave?",
+        judge=True,
+    )
+
+    assert result["answer_quality_score"] == 9
+    assert result["judge_justification"] == judgment.justification
+
+    mock_evaluate.assert_called_once_with(
+        question="How do I request leave?",
+        answer="Submit the request through the employee portal.",
+        context="Annual leave policy context.",
+    )
+
+    mock_record.assert_called_once_with(
+        "test-trace-123",
+        judgment,
+    )
+
+
+@patch("src.orchestrator.record_evaluation_score")
+@patch("src.orchestrator.evaluate_answer")
+def test_judge_is_not_called_by_default(
+    mock_evaluate,
+    mock_record,
+    mocked_workflow,
+):
+    """Keep answer evaluation disabled by default."""
+    result = process_question("How do I request leave?")
+
+    assert "answer_quality_score" not in result
+    assert "judge_justification" not in result
+
+    mock_evaluate.assert_not_called()
+    mock_record.assert_not_called()
+
+
+@patch("src.orchestrator.record_evaluation_score")
+@patch("src.orchestrator.evaluate_answer")
+def test_judge_failure_still_flushes_langfuse(
+    mock_evaluate,
+    mock_record,
+    mocked_workflow,
+):
+    """Flush Langfuse even when answer evaluation fails."""
+    mock_evaluate.side_effect = RuntimeError(
+        "Evaluation failed."
+    )
+
+    with pytest.raises(RuntimeError, match="Evaluation failed"):
+        process_question(
+            "How do I request leave?",
+            judge=True,
+        )
+
+    mock_record.assert_not_called()
+    mocked_workflow["client"].flush.assert_called_once()
+
+
+@patch("src.orchestrator.record_evaluation_score")
+@patch("src.orchestrator.evaluate_answer")
+def test_judge_requires_trace_id(
+    mock_evaluate,
+    mock_record,
+    mocked_workflow,
+):
+    """Prevent score registration without a valid trace identifier."""
+    mocked_workflow["client"].get_current_trace_id.return_value = None
+
+    with pytest.raises(ValueError, match="Langfuse trace ID"):
+        process_question(
+            "How do I request leave?",
+            judge=True,
+        )
+
+    mock_evaluate.assert_not_called()
+    mock_record.assert_not_called()
     mocked_workflow["client"].flush.assert_called_once()

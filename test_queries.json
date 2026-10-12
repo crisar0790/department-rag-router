@@ -1,0 +1,112 @@
+
+{
+  "description": "Evaluation queries for the AR Cloud multi-agent RAG system.",
+  "version": "1.0",
+  "queries": [
+    {
+      "id": "HR-01",
+      "question": "How do I request annual vacation leave?",
+      "expected_department": "hr",
+      "expected_document_ids": ["HR-001"],
+      "category": "standard"
+    },
+    {
+      "id": "HR-02",
+      "question": "How can I request a recurring remote work arrangement?",
+      "expected_department": "hr",
+      "expected_document_ids": ["HR-004"],
+      "category": "standard"
+    },
+    {
+      "id": "HR-03",
+      "question": "Who is responsible for mandatory employee training?",
+      "expected_department": "hr",
+      "expected_document_ids": ["HR-009"],
+      "category": "standard"
+    },
+    {
+      "id": "HR-04",
+      "question": "What happens during the onboarding process for a new employee?",
+      "expected_department": "hr",
+      "expected_document_ids": ["HR-003"],
+      "category": "standard"
+    },
+    {
+      "id": "TECH-01",
+      "question": "How do I recover access to my company account?",
+      "expected_department": "technology",
+      "expected_document_ids": ["TECH-001"],
+      "category": "standard"
+    },
+    {
+      "id": "TECH-02",
+      "question": "What should I do if my company laptop stops working?",
+      "expected_department": "technology",
+      "expected_document_ids": ["TECH-003"],
+      "category": "standard"
+    },
+    {
+      "id": "TECH-03",
+      "question": "How does the company handle data backups and recovery?",
+      "expected_department": "technology",
+      "expected_document_ids": ["TECH-006"],
+      "category": "standard"
+    },
+    {
+      "id": "TECH-04",
+      "question": "Can I install unapproved software on my company computer?",
+      "expected_department": "technology",
+      "expected_document_ids": ["TECH-004"],
+      "category": "standard"
+    },
+    {
+      "id": "FIN-01",
+      "question": "How do I request reimbursement for a business expense?",
+      "expected_department": "finance",
+      "expected_document_ids": ["FIN-001"],
+      "category": "standard"
+    },
+    {
+      "id": "FIN-02",
+      "question": "How are supplier invoices reviewed and processed?",
+      "expected_department": "finance",
+      "expected_document_ids": ["FIN-003"],
+      "category": "standard"
+    },
+    {
+      "id": "FIN-03",
+      "question": "What approvals are required before purchasing equipment?",
+      "expected_department": "finance",
+      "expected_document_ids": ["FIN-002"],
+      "category": "standard"
+    },
+    {
+      "id": "FIN-04",
+      "question": "How are departmental budgets planned and monitored?",
+      "expected_department": "finance",
+      "expected_document_ids": ["FIN-004"],
+      "category": "standard"
+    },
+    {
+      "id": "EDGE-01",
+      "question": "My new employee cannot access the company portal. Who should resolve the technical issue?",
+      "expected_department": "technology",
+      "expected_document_ids": ["TECH-001"],
+      "category": "cross_department"
+    },
+    {
+      "id": "EDGE-02",
+      "question": "Who approves the payment for a new software subscription?",
+      "expected_department": "finance",
+      "expected_document_ids": ["FIN-002"],
+      "category": "cross_department"
+    },
+    {
+      "id": "EDGE-03",
+      "question": "What will the weather be like tomorrow in Buenos Aires?",
+      "expected_department": null,
+      "expected_document_ids": [],
+      "category": "out_of_scope"
+    }
+  ]
+}

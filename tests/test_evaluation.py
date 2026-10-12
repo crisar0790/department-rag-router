@@ -251,11 +251,22 @@ def test_judge_requires_langfuse_trace(
         evaluate_query(sample_query, judge=True)
 
 
-@pytest.mark.parametrize("score", [-1, 11])
+@pytest.mark.parametrize("score", [0, -1, 11])
 def test_judge_result_rejects_invalid_scores(score):
     """Reject quality scores outside the supported range."""
     with pytest.raises(ValidationError):
         JudgeResult(score=score, justification="Invalid score.")
+
+
+@pytest.mark.parametrize("score", [1, 5, 10])
+def test_judge_result_accepts_valid_scores(score):
+    """Accept quality scores within the supported range."""
+    result = JudgeResult(
+        score=score,
+        justification="Valid evaluation score.",
+    )
+
+    assert result.score == score
 
 
 @patch("src.evaluator.create_langfuse_client")

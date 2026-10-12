@@ -26,8 +26,8 @@ Criteria:
 - Completeness: Does the answer address the user's question?
 - Relevance: Is the answer focused on the question?
 
-Assign an overall score from 0 to 10:
-0 = unsupported or entirely incorrect.
+Assign an overall score from 1 to 10:
+1 = unsupported or entirely incorrect.
 5 = partially correct or incomplete.
 10 = accurate, complete, and fully grounded.
 
@@ -42,7 +42,7 @@ Provide a concise justification in English.
 class JudgeResult(BaseModel):
     """Structured evaluation produced by the judge model."""
 
-    score: int = Field(ge=0, le=10)
+    score: int = Field(ge=1, le=10)
     justification: str = Field(min_length=1)
 
 

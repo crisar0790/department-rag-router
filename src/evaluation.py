@@ -58,7 +58,7 @@ def _evaluate_quality(query: dict, result: dict) -> dict:
     }
 
 
-def evaluate_query(query: dict, k: int = 3, judge: bool = False) -> dict:
+def evaluate_query(query: dict, k: int = 3, judge: bool = True) -> dict:
     """Evaluate one question using the complete RAG workflow."""
     result = process_question(
         query["question"], k=k, include_evaluation_data=judge
@@ -113,7 +113,7 @@ def calculate_metrics(results: list[dict]) -> dict:
     }
 
 
-def run_evaluation(path: Path, k: int = 3, judge: bool = False) -> dict:
+def run_evaluation(path: Path, k: int = 3, judge: bool = True) -> dict:
     """Run all evaluation cases and aggregate their results."""
     queries = load_test_queries(path)
     results = []
@@ -130,7 +130,12 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Evaluate the RAG system.")
     parser.add_argument("--queries", type=Path, default=DEFAULT_QUERIES_PATH)
     parser.add_argument("--k", type=int, default=3)
-    parser.add_argument("--judge", action="store_true")
+    parser.add_argument(
+        "--no-judge",
+        action="store_false",
+        dest="judge",
+        help="Skip LLM quality evaluation (routing and retrieval only).",
+    )
     parser.add_argument(
         "--output", type=Path, default=Path("evaluation/report.json")
     )

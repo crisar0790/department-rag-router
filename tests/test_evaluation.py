@@ -99,7 +99,7 @@ def test_evaluate_query_correct_routing_and_retrieval(
     """Recognize correct routing and retrieval."""
     mock_process.return_value = sample_result
 
-    result = evaluate_query(sample_query)
+    result = evaluate_query(sample_query, judge=False)
 
     assert result["routing_correct"] is True
     assert result["retrieval_hit"] is True
@@ -122,7 +122,7 @@ def test_evaluate_query_detects_incorrect_routing(
         "department": "finance",
     }
 
-    result = evaluate_query(sample_query)
+    result = evaluate_query(sample_query, judge=False)
 
     assert result["routing_correct"] is False
 
@@ -142,7 +142,7 @@ def test_evaluate_query_detects_retrieval_miss(
         ],
     }
 
-    result = evaluate_query(sample_query)
+    result = evaluate_query(sample_query, judge=False)
 
     assert result["retrieval_hit"] is False
 
@@ -344,7 +344,7 @@ def test_run_evaluation_aggregates_results(
         {"routing_correct": False, "retrieval_hit": True},
     ]
 
-    report = run_evaluation(tmp_path / "queries.json", k=2)
+    report = run_evaluation(tmp_path / "queries.json", k=2, judge=False)
 
     assert report["metrics"]["total_queries"] == 2
     assert report["metrics"]["routing_accuracy"] == 0.5
@@ -385,3 +385,118 @@ def test_evaluate_answer_forwards_callbacks(mock_create_model):
     assert structured_model.invoke.call_args.kwargs["config"] == {
         "callbacks": [callback],
     }
+
+
+@patch("src.evaluation._evaluate_quality")
+@patch("src.evaluation.process_question")
+def test_evaluate_query_runs_judge_by_default(
+    mock_process,
+    mock_quality,
+    sample_query,
+    sample_result,
+):
+    """Enable answer quality evaluation by default."""
+    mock_process.return_value = sample_result
+    mock_quality.return_value = {
+        "answer_quality_score": 9,
+        "judge_justification": "The answer is grounded.",
+    }
+
+    result = evaluate_query(sample_query)
+
+    assert result["answer_quality_score"] == 9
+    mock_quality.assert_called_once_with(
+        sample_query,
+        sample_result,
+    )
+    mock_process.assert_called_once_with(
+        sample_query["question"],
+        k=3,
+        include_evaluation_data=True,
+    )
+
+
+@patch("src.evaluation._evaluate_quality")
+@patch("src.evaluation.process_question")
+def test_evaluate_query_can_skip_judge(
+    mock_process,
+    mock_quality,
+    sample_query,
+    sample_result,
+):
+    """Allow routing-only evaluation without an LLM judge."""
+    mock_process.return_value = sample_result
+
+    result = evaluate_query(sample_query, judge=False)
+
+    assert "answer_quality_score" not in result
+    mock_quality.assert_not_called()
+    mock_process.assert_called_once_with(
+        sample_query["question"],
+        k=3,
+        include_evaluation_data=False,
+    )
+
+
+
+@patch("src.evaluation._evaluate_quality")
+@patch("src.evaluation.process_question")
+def test_out_of_scope_skips_quality_scoring_by_default(
+    mock_process,
+    mock_quality,
+):
+    """Exclude out-of-scope responses from LLM quality scoring."""
+    query = {
+        "id": "EDGE-03",
+        "question": "What will the weather be tomorrow?",
+        "expected_department": "out_of_scope",
+        "expected_document_ids": [],
+        "category": "out_of_scope",
+    }
+
+    mock_process.return_value = {
+        "department": "out_of_scope",
+        "answer": "This question is outside the supported domains.",
+        "sources": [],
+        "context": "",
+        "trace_id": "test-trace-123",
+    }
+
+    mock_quality.return_value = {
+        "answer_quality_score": None,
+        "judge_justification": None,
+    }
+
+    result = evaluate_query(query)
+
+    assert result["routing_correct"] is True
+    assert result["retrieval_hit"] is None
+    assert result["answer_quality_score"] is None
+    assert result["judge_justification"] is None
+
+    mock_quality.assert_called_once_with(
+        query,
+        mock_process.return_value,
+    )
+
+
+@patch("src.evaluation.evaluate_answer")
+@patch("src.evaluation.record_evaluation_score")
+def test_out_of_scope_does_not_invoke_llm_judge(
+    mock_record,
+    mock_evaluate,
+):
+    """Avoid judge API calls for out-of-scope questions."""
+    from src.evaluation import _evaluate_quality
+
+    query = {"category": "out_of_scope"}
+    result = {"trace_id": "test-trace-123"}
+
+    quality = _evaluate_quality(query, result)
+
+    assert quality == {
+        "answer_quality_score": None,
+        "judge_justification": None,
+    }
+    mock_evaluate.assert_not_called()
+    mock_record.assert_not_called()

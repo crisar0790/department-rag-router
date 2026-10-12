@@ -6,12 +6,25 @@ from unittest.mock import MagicMock, patch
 import pytest
 from langchain_core.documents import Document
 from langchain_core.messages import HumanMessage, SystemMessage
+from langchain_core.runnables import RunnableLambda
 
 from src.agents.department_agent import (
     _extract_response_text,
     _format_context,
     answer_department_question,
 )
+
+
+def _mock_chat_model(mock_create_model, answer="Example answer"):
+    """Replace the chat model with an LCEL-compatible runnable."""
+    responses = []
+
+    def generate(prompt_value):
+        responses.append(prompt_value.to_messages())
+        return MagicMock(content=answer)
+
+    mock_create_model.return_value = RunnableLambda(generate)
+    return responses
 
 
 @pytest.fixture
@@ -88,9 +101,7 @@ def test_agent_uses_selected_department(
 ):
     """Retrieve documents from the selected department."""
     mock_retrieve.return_value = []
-    mock_create_model.return_value.invoke.return_value = MagicMock(
-        content="No relevant information found."
-    )
+    _mock_chat_model(mock_create_model, answer="No relevant information found.")
 
     result = answer_department_question(
         question="Example question",
@@ -112,9 +123,7 @@ def test_agent_returns_answer_and_sources(
 ):
     """Return the generated answer and retrieved document sources."""
     mock_retrieve.return_value = sample_documents
-    mock_create_model.return_value.invoke.return_value = MagicMock(
-        content="Employees receive 20 working days of annual leave."
-    )
+    _mock_chat_model(mock_create_model, answer="Employees receive 20 working days of annual leave.")
 
     result = answer_department_question(
         question="How many vacation days do employees receive?",
@@ -138,21 +147,18 @@ def test_agent_builds_grounded_prompt(
 ):
     """Send the retrieved context and question to the model."""
     mock_retrieve.return_value = sample_documents
-    mock_create_model.return_value.invoke.return_value = MagicMock(
-        content="Example answer"
-    )
+
+    responses = _mock_chat_model(mock_create_model)
 
     answer_department_question("How do I request leave?", "hr")
 
-    args, kwargs = mock_create_model.return_value.invoke.call_args
-    messages = args[0]
+    messages = responses[0]
 
     assert isinstance(messages[0], SystemMessage)
     assert isinstance(messages[1], HumanMessage)
     assert "hr specialist" in messages[0].content
     assert "Document ID: HR-001" in messages[1].content
     assert "How do I request leave?" in messages[1].content
-    assert kwargs["config"] == {"callbacks": []}
 
 
 @patch("src.agents.department_agent.create_chat_model")
@@ -162,9 +168,14 @@ def test_agent_forwards_langfuse_callbacks(
 ):
     """Forward observability callbacks to the language model."""
     mock_retrieve.return_value = []
-    mock_create_model.return_value.invoke.return_value = MagicMock(
-        content="Example answer"
-    )
+
+    received_configs = []
+
+    def generate(messages, config):
+        received_configs.append(config)
+        return MagicMock(content="Example answer")
+
+    mock_create_model.return_value = RunnableLambda(generate)
 
     callback = MagicMock()
 
@@ -174,6 +185,4 @@ def test_agent_forwards_langfuse_callbacks(
         callbacks=[callback],
     )
 
-    assert mock_create_model.return_value.invoke.call_args.kwargs[
-        "config"
-    ] == {"callbacks": [callback]}
+    assert callback in received_configs[0]["callbacks"].handlers

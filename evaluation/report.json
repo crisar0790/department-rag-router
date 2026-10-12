@@ -1,0 +1,237 @@
+{
+  "metrics": {
+    "total_queries": 15,
+    "routing_evaluated": 14,
+    "routing_accuracy": 1.0,
+    "retrieval_evaluated": 14,
+    "retrieval_hit_rate": 1.0
+  },
+  "results": [
+    {
+      "id": "HR-01",
+      "category": "standard",
+      "expected_department": "hr",
+      "predicted_department": "hr",
+      "routing_correct": true,
+      "expected_document_ids": [
+        "HR-001"
+      ],
+      "retrieved_document_ids": [
+        "HR-001",
+        "HR-002"
+      ],
+      "retrieval_hit": true,
+      "answer": "To request annual vacation leave at AR Cloud:\n\n1. Submit your vacation request through the employee portal.\n2. Include:\n   - The first day of your absence\n   - The last day of your absence\n   - The colleague responsible for urgent handover items\n3. Submit the request at least 10 working days before your first vacation day.\n4. You should discuss your planned absence with your manager before submitting, especially if your dates overlap with a product release or another team member’s approved absence."
+    },
+    {
+      "id": "HR-02",
+      "category": "standard",
+      "expected_department": "hr",
+      "predicted_department": "hr",
+      "routing_correct": true,
+      "expected_document_ids": [
+        "HR-004"
+      ],
+      "retrieved_document_ids": [
+        "HR-004"
+      ],
+      "retrieval_hit": true,
+      "answer": "To request a recurring remote or hybrid work arrangement at AR Cloud:\n\n1. Discuss the arrangement with your direct manager.\n2. Prepare a request that includes:\n   - Proposed work location\n   - Remote working days\n   - Working hours\n   - Any equipment requirements\n3. Submit the request through the employee portal.\n4. Your manager will review operational coverage and role requirements.\n5. HR will confirm the approved arrangement and record it in the portal.\n\nYou must continue following your existing arrangement until HR confirms the change. A manager’s informal agreement does not replace HR confirmation."
+    },
+    {
+      "id": "HR-03",
+      "category": "standard",
+      "expected_department": "hr",
+      "predicted_department": "hr",
+      "routing_correct": true,
+      "expected_document_ids": [
+        "HR-009"
+      ],
+      "retrieved_document_ids": [
+        "HR-009"
+      ],
+      "retrieval_hit": true,
+      "answer": "Under AR Cloud’s Mandatory Training Policy:\n\n- **HR** coordinates training assignments and monitors completion records.\n- **The training owner** defines course content, assessment requirements, and acceptable completion evidence.\n- **The direct manager** ensures employees have time within approved working hours to complete required training.\n- **Employees** must review assignments, complete required activities, and report blockers before deadlines.\n- **Technology Support** handles technical access issues, but does **not** approve extensions or mark training as complete."
+    },
+    {
+      "id": "HR-04",
+      "category": "standard",
+      "expected_department": "hr",
+      "predicted_department": "hr",
+      "routing_correct": true,
+      "expected_document_ids": [
+        "HR-003"
+      ],
+      "retrieved_document_ids": [
+        "HR-003"
+      ],
+      "retrieval_hit": true,
+      "answer": "For a new full-time AR Cloud employee, onboarding covers the period from before the start date through the first 30 calendar days.\n\nKey steps include:\n\n1. **Before the start date**\n   - HR sends a welcome email at least five working days before the confirmed start date.\n   - The email includes the first-day schedule, HR contact, and instructions for submitting administrative documents.\n   - The manager submits equipment and access requests to Technology Support at least five working days before the start date.\n\n2. **Documents and access preparation**\n   - The employee submits requested documents through the secure HR submission link.\n   - Technology Support arranges equipment delivery or collection.\n   - The employee activates their company account and sets up multi-factor authentication using Technology Support’s instructions.\n\n3. **First day**\n   - HR conducts an orientation covering company structure, HR support channels, and where to find internal policies.\n   - The manager explains the employee’s responsibilities, introduces the team, and reviews the first week’s schedule.\n   - An onboarding buddy helps the employee find documentation and understand routine team practices.\n\n4. **First week**\n   - The employee must complete assigned security awareness training within five working days of the start date.\n\n5. **Checklist and follow-up**\n   - HR coordinates the onboarding checklist.\n   - The employee completes assigned activities, reports blockers, and keeps the checklist updated.\n   - HR closes the checklist once all required items are confirmed. Any unresolved items remain open with an assigned owner and expected resolution date.\n\nDifferent groups are responsible for different parts: HR handles orientation, documents, and checklist coordination; the manager handles role expectations and work planning; and Technology Support handles equipment, account activation, authentication, and technical access issues."
+    },
+    {
+      "id": "TECH-01",
+      "category": "standard",
+      "expected_department": "technology",
+      "predicted_department": "technology",
+      "routing_correct": true,
+      "expected_document_ids": [
+        "TECH-001"
+      ],
+      "retrieved_document_ids": [
+        "TECH-001"
+      ],
+      "retrieval_hit": true,
+      "answer": "To recover access to your AR Cloud company account:\n\n1. **If you forgot your password but know your account identifier**  \n   Use the **password reset option on the official company sign-in page**. The reset flow will verify you using an approved recovery method. Reset links expire after **30 minutes**, so use the most recent link.\n\n2. **If your activation link expired**  \n   Contact **Technology Support** to request a replacement activation link. HR may help coordinate onboarding issues but cannot issue activation links.\n\n3. **If you lost access to your authentication device**  \n   Use an approved alternative factor or recovery method if available. If none is available, submit an **account recovery request to Technology Support**.\n\n4. **What to include in a recovery request**  \n   Include:\n   - Your company account identifier\n   - A safe contact method\n   - A description of the access problem\n\n   Do **not** include passwords, one-time codes, recovery codes, activation links, or other authentication secrets.\n\nTechnology Support will verify your identity through the approved recovery process before changing authentication methods."
+    },
+    {
+      "id": "TECH-02",
+      "category": "standard",
+      "expected_department": "technology",
+      "predicted_department": "technology",
+      "routing_correct": true,
+      "expected_document_ids": [
+        "TECH-003"
+      ],
+      "retrieved_document_ids": [
+        "TECH-003"
+      ],
+      "retrieval_hit": true,
+      "answer": "If your company laptop stops working, report it through the Technology support process.\n\nInclude in the ticket:\n- The laptop’s asset identifier\n- The symptoms\n- When the problem began\n- How it affects your work\n- Any visible error and approximate time of failure, if updates are failing\n\nYou may try basic checks, such as:\n- Verifying the power connection\n- Checking an approved cable\n- Restarting the laptop when it is safe to do so\n\nStop using it and disconnect it from power if this can be done safely if you notice electrical damage, unusual heat, swelling, smoke, or liquid exposure. Do not open the device, attempt internal repair, or take it to an external repair provider without written approval.\n\nTechnology may arrange diagnostics, remote assistance, an authorized repair, a replacement, or a loan device depending on the situation and available inventory."
+    },
+    {
+      "id": "TECH-03",
+      "category": "standard",
+      "expected_department": "technology",
+      "predicted_department": "technology",
+      "routing_correct": true,
+      "expected_document_ids": [
+        "TECH-006"
+      ],
+      "retrieved_document_ids": [
+        "TECH-006"
+      ],
+      "retrieval_hit": true,
+      "answer": "AR Cloud handles data backups and recovery through a formal Technology-managed backup and recovery process.\n\nKey points from the policy:\n\n- **Scope:** Backups apply to company-managed infrastructure, business applications, databases, shared document repositories, and other systems formally included in the backup inventory. Employees should not assume that local device files or external platforms are automatically backed up.\n\n- **Ownership and inventory:** Technology maintains a backup inventory that identifies each protected system’s owner, business purpose, information classification, backup method, retention requirements, and recovery priority. New systems or significant changes must be reported to Technology.\n\n- **Backup confirmation:** A system is not considered protected until Technology confirms that a suitable backup mechanism has been configured and successfully tested.\n\n- **Backup frequency:** Backup schedules depend on system importance and potential data loss impact. Critical transactional systems may need multiple backups per business day, standard applications may use daily backups, and lower-priority repositories may be backed up less often.\n\n- **Backup methods:** AR Cloud may use full, incremental, or differential backups depending on system needs, recovery complexity, storage efficiency, and operational overhead.\n\n- **Storage and security:** Backup copies must be stored in approved locations with appropriate access restrictions. Access to backup management systems is limited to authorized Technology personnel. Encryption is applied when required by data sensitivity and platform capability.\n\n- **Monitoring and failures:** Technology monitors backup jobs for failures, incomplete datasets, capacity problems, and interruptions. Failed jobs are investigated based on impact, and repeated failures affecting critical systems are escalated. Resolution must confirm that backup protection has been restored.\n\n- **Recovery planning:** Recovery requirements are evaluated using:\n  - **RPO**, the maximum acceptable period of data loss.\n  - **RTO**, the target time to restore an affected service after disruption.\n\nTechnology works with business departments and system owners to determine backup schedules, recovery priorities, and acceptable service interruptions."
+    },
+    {
+      "id": "TECH-04",
+      "category": "standard",
+      "expected_department": "technology",
+      "predicted_department": "technology",
+      "routing_correct": true,
+      "expected_document_ids": [
+        "TECH-004"
+      ],
+      "retrieved_document_ids": [
+        "TECH-004"
+      ],
+      "retrieval_hit": true,
+      "answer": "No. The policy says employees should use approved software and check the internal approved software catalog first.\n\nIf the software is not in the managed portal or the catalog entry is unclear, you should submit a Technology request. You should not assume that an older approval, a colleague’s installation, or the software being free or widely used means it is approved.\n\nYou must also use the managed software portal or the installation method provided by Technology, and installation packages must come from the approved source."
+    },
+    {
+      "id": "FIN-01",
+      "category": "standard",
+      "expected_department": "finance",
+      "predicted_department": "finance",
+      "routing_correct": true,
+      "expected_document_ids": [
+        "FIN-001"
+      ],
+      "retrieved_document_ids": [
+        "FIN-001"
+      ],
+      "retrieval_hit": true,
+      "answer": "To request reimbursement for a business expense:\n\n1. Use the company’s approved submission process.\n2. Include the required details:\n   - Employee name\n   - Department\n   - Expense date\n   - Expense category\n   - Amount\n   - Currency\n   - Business justification\n3. Attach or provide supporting documentation through the approved internal system.\n4. If multiple expenses relate to the same trip or activity, organize them clearly.\n5. Check that the submitted information matches the supporting documents.\n\nYour department manager will review the business justification and whether the expense was necessary and appropriate. After manager approval, Finance will verify the financial documentation and policy compliance.\n\nRequests with incorrect amounts, missing receipts, or unclear descriptions may be returned for correction."
+    },
+    {
+      "id": "FIN-02",
+      "category": "standard",
+      "expected_department": "finance",
+      "predicted_department": "finance",
+      "routing_correct": true,
+      "expected_document_ids": [
+        "FIN-003"
+      ],
+      "retrieved_document_ids": [
+        "FIN-003"
+      ],
+      "retrieval_hit": true,
+      "answer": "Supplier invoices are reviewed and processed through several Finance controls:\n\n1. **Invoice registration and tracking**\n   - Invoices must be assigned an internal tracking reference for review and payment reconciliation.\n   - Finance must avoid registering the same invoice more than once.\n   - Receiving an invoice does not automatically mean the purchase was authorized or that payment is due.\n\n2. **Required invoice information**\n   - The invoice must contain enough information to identify the supplier, transaction, and financial obligation.\n   - Required details generally include supplier identification, invoice number, issue date, goods or services description, amounts, currency, and payment conditions.\n   - Tax information must be reviewed according to the transaction requirements.\n   - If information is missing or inconsistent, Finance may request corrections, and the issue must be documented and resolved before final payment authorization.\n\n3. **Supplier verification**\n   - Finance verifies that the invoice was issued by a legitimate supplier connected to an authorized business transaction.\n   - Supplier details are compared with approved vendor records and purchasing documentation.\n   - New suppliers or unexpected changes in supplier identity, payment details, or contractual conditions may require additional investigation.\n\n4. **Matching to purchase records**\n   - Invoices linked to approved purchase orders must be checked against purchasing records.\n   - Finance compares the invoiced goods or services, quantities, prices, and contractual conditions with the authorized commitment.\n   - Where applicable, Finance also confirms that goods or services were received.\n   - Differences must be investigated before payment approval.\n\n5. **Service or delivery confirmation**\n   - For services, subscriptions, cloud services, and other non-physical purchases, the responsible service owner may need to confirm delivery or acceptance.\n   - Disputed or incomplete services must be reported to Finance, and the invoice may be placed on hold during investigation.\n\n6. **Duplicate invoice prevention**\n   - Finance applies controls to identify invoices that may already have been registered or paid.\n   - Duplicate checks consider supplier identity, invoice number, amount, currency, and transaction dates.\n\n7. **Payment authorization and execution**\n   - Payment may only be made after the invoice has completed the required validation and authorization process.\n   - Payment instructions must use verified supplier information and approved payment details.\n   - The payment record must identify the supplier, amount, currency, invoice reference, and execution date.\n   - Payment confirmations must be retained for reconciliation and future inquiries."
+    },
+    {
+      "id": "FIN-03",
+      "category": "standard",
+      "expected_department": "finance",
+      "predicted_department": "finance",
+      "routing_correct": true,
+      "expected_document_ids": [
+        "FIN-002"
+      ],
+      "retrieved_document_ids": [
+        "FIN-002"
+      ],
+      "retrieval_hit": true,
+      "answer": "Before purchasing equipment, AR Cloud requires the purchase to go through the structured purchase request and approval process:\n\n- The employee must submit a purchase request through the approved internal process.\n- The request must explain what is needed, why it is necessary, estimated cost, preferred supplier if applicable, expected delivery date, and relevant department or project.\n- A department manager evaluates the business necessity and confirms the equipment supports legitimate activities.\n- Finance verifies budget availability, financial conditions, and compliance with purchasing procedures.\n- Higher-value or unusual equipment purchases may require authorization from additional designated decision-makers.\n- Approval decisions must be documented before AR Cloud makes any binding financial commitment.\n\nEmployees must not commit AR Cloud to the equipment purchase before the required approvals have been obtained."
+    },
+    {
+      "id": "FIN-04",
+      "category": "standard",
+      "expected_department": "finance",
+      "predicted_department": "finance",
+      "routing_correct": true,
+      "expected_document_ids": [
+        "FIN-004"
+      ],
+      "retrieved_document_ids": [
+        "FIN-004"
+      ],
+      "retrieval_hit": true,
+      "answer": "Departmental budgets at AR Cloud are planned and monitored through a structured Finance-led process:\n\n### Planning\n\n- Finance coordinates the annual budget planning calendar and communicates submission deadlines.\n- Each department manager prepares a budget proposal based on realistic operational requirements.\n- Proposals should identify:\n  - Expected expenses\n  - Relevant cost categories\n  - Estimated timing\n  - Business purpose of significant expenditures\n  - Recurring commitments\n  - Staffing requirements\n  - Planned projects\n  - Anticipated resource changes\n- Managers should consider historical spending, contractual commitments, expected workload changes, and planned improvements.\n- Requests for additional resources must include justification explaining their operational value.\n- Departments must distinguish between essential operating costs and discretionary initiatives.\n- Finance consolidates departmental submissions and evaluates whether they align with company-wide financial objectives.\n- The consolidated proposal may go through multiple revisions before final approval.\n- Once approved, the annual budget becomes the reference point for monitoring during the fiscal year.\n\n### Monitoring\n\n- Finance maintains the official approved budget records.\n- Finance monitors actual financial activity against approved budgets throughout the fiscal year.\n- Monthly monitoring compares:\n  - Recorded expenses\n  - Outstanding commitments\n  - Available budget allocations\n- Department managers review reports to identify unexpected costs or changes in spending patterns.\n- Finance may investigate transactions assigned to incorrect departments or expense categories.\n- Monitoring considers both completed payments and valid unpaid obligations.\n- Finance analyzes significant variances between planned and actual financial performance.\n- Department managers must explain material deviations when requested.\n- Corrective actions may include revised forecasts, spending adjustments, or additional management review.\n- If spending approaches defined thresholds, Finance informs the responsible manager.\n- If projected expenses are expected to exceed the approved allocation, the department must request an authorized adjustment before making additional discretionary commitments."
+    },
+    {
+      "id": "EDGE-01",
+      "category": "cross_department",
+      "expected_department": "technology",
+      "predicted_department": "technology",
+      "routing_correct": true,
+      "expected_document_ids": [
+        "TECH-001"
+      ],
+      "retrieved_document_ids": [
+        "TECH-001"
+      ],
+      "retrieval_hit": true,
+      "answer": "Technology Support should resolve company portal access technical issues, such as activation, authentication failures, password recovery, lockouts, and technical permission requests.\n\nIf the issue is about onboarding schedule questions or employee record corrections, HR handles those instead."
+    },
+    {
+      "id": "EDGE-02",
+      "category": "cross_department",
+      "expected_department": "finance",
+      "predicted_department": "finance",
+      "routing_correct": true,
+      "expected_document_ids": [
+        "FIN-002"
+      ],
+      "retrieved_document_ids": [
+        "FIN-002",
+        "FIN-006"
+      ],
+      "retrieval_hit": true,
+      "answer": "For a new software subscription, **Technology must review/approve the technical suitability**, including compatibility, security, licensing, and related technical requirements. However, **Technology approval does not replace financial authorization**.\n\nThe document states that **Finance must confirm the purchase has completed all required technical and business reviews before payment commitments are finalized**. Employees must not independently acquire unapproved software subscriptions or commit to payment without appropriate authority.\n\nSo, payment approval requires **Finance financial authorization**, after the required **Technology and business reviews** are completed."
+    },
+    {
+      "id": "EDGE-03",
+      "category": "out_of_scope",
+      "expected_department": null,
+      "predicted_department": "technology",
+      "routing_correct": null,
+      "expected_document_ids": [],
+      "retrieved_document_ids": [
+        "TECH-002",
+        "TECH-008"
+      ],
+      "retrieval_hit": null,
+      "answer": "I don’t have that information in the provided document context. The documents only cover AR Cloud technology support, escalation, and business continuity procedures, not weather forecasts."
+    }
+  ]
+}

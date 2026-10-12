@@ -84,6 +84,7 @@ def answer_department_question(
         "department": department,
         "question": question,
         "answer": _extract_response_text(response.content),
+        "context": context,
         "sources": [
             {
                 "document_id": document.metadata["document_id"],

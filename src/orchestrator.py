@@ -26,6 +26,7 @@ def _judge_response(
     question: str,
     result: dict,
     trace_id: str,
+    callbacks: list | None = None,
 ) -> dict:
     """Evaluate a generated answer and record its quality score."""
     if not trace_id:
@@ -35,6 +36,7 @@ def _judge_response(
         question=question,
         answer=result["answer"],
         context=result["context"],
+        callbacks=callbacks,
     )
 
     record_evaluation_score(trace_id, judgment)
@@ -115,7 +117,12 @@ def process_question(
 
             if judge:
                 output.update(
-                    _judge_response(question, result, trace_id)
+                    _judge_response(
+                        question,
+                        result,
+                        trace_id,
+                        callbacks=[handler],
+                    )
                 )
 
             trace.update(

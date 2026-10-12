@@ -236,6 +236,7 @@ def test_optional_judge_evaluates_response(
         question="How do I request leave?",
         answer="Submit the request through the employee portal.",
         context="Annual leave policy context.",
+        callbacks=[mocked_workflow["handler"]],
     )
 
     mock_record.assert_called_once_with(

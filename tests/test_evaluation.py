@@ -312,3 +312,37 @@ def test_run_evaluation_aggregates_results(
     assert report["metrics"]["retrieval_hit_rate"] == 1.0
     assert len(report["results"]) == 2
     assert mock_evaluate_query.call_count == 2
+
+
+@patch("src.evaluator.create_evaluator_model")
+def test_evaluate_answer_forwards_callbacks(mock_create_model):
+    """Forward Langfuse callbacks to the evaluator model."""
+    from unittest.mock import MagicMock
+
+    from src.evaluator import evaluate_answer
+
+    judgment = JudgeResult(
+        score=9,
+        justification="The answer is grounded in the context.",
+    )
+
+    structured_model = MagicMock()
+    structured_model.invoke.return_value = judgment
+
+    mock_create_model.return_value.with_structured_output.return_value = (
+        structured_model
+    )
+
+    callback = MagicMock()
+
+    result = evaluate_answer(
+        question="How do I request annual leave?",
+        answer="Use the employee portal.",
+        context="Leave requests use the employee portal.",
+        callbacks=[callback],
+    )
+
+    assert result == judgment
+    assert structured_model.invoke.call_args.kwargs["config"] == {
+        "callbacks": [callback],
+    }

@@ -66,6 +66,7 @@ def evaluate_answer(
     question: str,
     answer: str,
     context: str,
+    callbacks: list | None = None,
 ) -> JudgeResult:
     """Score an answer against the retrieved document context."""
     model = create_evaluator_model().with_structured_output(
@@ -83,7 +84,8 @@ def evaluate_answer(
                     f"Answer:\n{answer}"
                 )
             ),
-        ]
+        ],
+        config={"callbacks": callbacks or []},
     )
 
     return response
